@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { OptimizedImage } from './types';
-import { compressImage } from './services/compressionService';
-import { ImageEditor } from './components/ImageEditor';
+import { OptimizedImage } from './types.ts';
+import { compressImage } from './services/compressionService.ts';
+import { ImageEditor } from './components/ImageEditor.tsx';
 
 // Simple unique ID generator since we can't depend on external uuid lib in this specific snippet format
 const generateId = () => Math.random().toString(36).substr(2, 9);

@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { ImageMetadata } from "../types";
+import { ImageMetadata } from "../types.ts";
 
 // Initialize Gemini
 // Note: process.env.API_KEY is handled by the environment as per instructions

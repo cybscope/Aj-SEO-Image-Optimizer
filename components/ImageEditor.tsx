@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { OptimizedImage, ImageMetadata } from '../types';
-import { formatBytes, slugify } from '../services/compressionService';
-import { generateImageMetadata } from '../services/geminiService';
+import { OptimizedImage, ImageMetadata } from '../types.ts';
+import { formatBytes, slugify } from '../services/compressionService.ts';
+import { generateImageMetadata } from '../services/geminiService.ts';
 
 interface Props {
   image: OptimizedImage;

@@ -1,4 +1,4 @@
-import { CompressionConfig } from '../types';
+import { CompressionConfig } from '../types.ts';
 
 /**
  * Compresses an image file using the browser's Canvas API.
