@@ -5,25 +5,23 @@ import { ImageEditor } from './components/ImageEditor.tsx';
 import { AdUnit } from './components/AdUnit.tsx';
 
 // --- CONFIGURATION START ---
-// PASTE YOUR ADSENSE ID HERE
-const AD_CLIENT_ID = 'ca-pub-YOUR_ID_HERE'; 
-const LEFT_SIDEBAR_SLOT_ID = ''; // Paste Left Ad Slot ID
-const RIGHT_SIDEBAR_SLOT_ID = ''; // Paste Right Ad Slot ID
+const AD_CLIENT_ID = 'ca-pub-6989783976135951'; 
+const LEFT_SIDEBAR_SLOT_ID = '9069653922';
+const RIGHT_SIDEBAR_SLOT_ID = '9069653922'; 
+const TOP_BANNER_SLOT_ID = '9069653922'; 
+const MIDDLE_AD_SLOT_ID = '2332141523'; // New autorelaxed unit
 // --- CONFIGURATION END ---
 
-// Simple unique ID generator since we can't depend on external uuid lib in this specific snippet format
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 const App: React.FC = () => {
   const [images, setImages] = useState<OptimizedImage[]>([]);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Helper to update state
   const updateImage = (id: string, updates: Partial<OptimizedImage>) => {
     setImages(prev => prev.map(img => img.id === id ? { ...img, ...updates } : img));
   };
 
-  // 1. Handle File Upload
   const processFiles = async (files: FileList | null) => {
     if (!files) return;
 
@@ -43,12 +41,11 @@ const App: React.FC = () => {
           caption: '',
           fileName: file.name.split('.')[0].toLowerCase().replace(/\s+/g, '-')
         },
-        currentQuality: 0.7 // Default quality
+        currentQuality: 0.7
       }));
 
     setImages(prev => [...prev, ...newImages]);
 
-    // 2. Start Compression Queue
     newImages.forEach(async (img) => {
       updateImage(img.id, { status: 'compressing' });
       try {
@@ -69,7 +66,6 @@ const App: React.FC = () => {
     });
   };
 
-  // Handle re-compression when quality changes
   const handleRecompress = async (id: string, newQuality: number) => {
     const img = images.find(i => i.id === id);
     if (!img) return;
@@ -101,7 +97,6 @@ const App: React.FC = () => {
     });
   };
 
-  // Drag & Drop Handlers
   const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -120,57 +115,78 @@ const App: React.FC = () => {
 
   const onFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     processFiles(e.target.files);
-    // Reset value so same file can be selected again if needed
     e.target.value = '';
   };
 
   return (
-    <div className="min-h-screen pb-20 flex flex-col">
+    <div className="min-h-screen pb-20 flex flex-col bg-[#f8fafc]">
       
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-20">
+      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
         <div className="max-w-[1600px] mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-             <div className="bg-indigo-600 text-white p-2 rounded-lg">
+             <div className="bg-indigo-600 text-white p-2 rounded-lg shadow-md shadow-indigo-200">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
              </div>
              <div>
-                <h1 className="text-xl font-bold text-gray-900 leading-tight">Aj+ SEO Image Optimizer</h1>
-                <p className="text-xs text-gray-500">Compress & Tag for Web</p>
+                <h1 className="text-xl font-bold text-gray-900 leading-tight tracking-tight">Aj+ SEO Optimizer</h1>
+                <p className="text-xs text-gray-500 font-medium">Smart Compression & AI Metadata</p>
              </div>
           </div>
-          <div className="text-sm text-gray-500 hidden sm:block">
+          <div className="text-sm text-gray-500 hidden sm:block bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
             Supports: JPG, PNG, WEBP
           </div>
         </div>
       </header>
 
-      {/* Main Container with 3-Column Layout */}
-      <div className="max-w-[1600px] mx-auto w-full px-4 py-8 flex gap-6 flex-1 items-start">
+      {/* Main Container */}
+      <div className="max-w-[1600px] mx-auto w-full px-4 py-8 flex gap-8 flex-1 items-start justify-center">
         
-        {/* LEFT SIDEBAR - Visible on XL screens and up */}
-        <aside className="hidden xl:block w-[160px] 2xl:w-[300px] shrink-0">
-          <div className="sticky top-24 space-y-4">
-            <AdUnit 
-              client={AD_CLIENT_ID} 
-              slot={LEFT_SIDEBAR_SLOT_ID} 
-              format="vertical"
-              label="Left Sidebar"
-            />
-            <div className="text-xs text-gray-400 text-center">Advertisement</div>
-          </div>
+        {/* LEFT SIDEBAR - Desktop Only (2XL+) */}
+        {/* Widened to 300px to accommodate standard vertical banners */}
+        <aside className="hidden 2xl:block w-[300px] shrink-0 sticky top-28 self-start transition-all duration-300">
+          <AdUnit 
+            client={AD_CLIENT_ID} 
+            slot={LEFT_SIDEBAR_SLOT_ID} 
+            format="vertical"
+            label="Advertisement"
+            style={{ minHeight: '600px' }}
+            className="min-h-[600px] shadow-sm bg-white rounded-xl p-2 border border-gray-100"
+          />
         </aside>
 
         {/* CENTER CONTENT */}
-        <main className="flex-1 max-w-4xl mx-auto w-full">
+        <main className="flex-1 w-full max-w-4xl min-w-0">
           
+          {/* Main Title - Added as per request */}
+          <div className="text-center mb-8 mt-2 px-4">
+             <h1 className="text-3xl md:text-4xl font-extrabold text-gray-800 tracking-tight leading-tight">
+               SEO Image Size Reducer with Title Generator with AI
+             </h1>
+          </div>
+          
+          {/* Top Banner Ad - Visible on all screen sizes */}
+          <div className="mb-8">
+            <AdUnit 
+              client={AD_CLIENT_ID} 
+              slot={TOP_BANNER_SLOT_ID} 
+              format="horizontal"
+              label="Sponsored"
+              className="min-h-[100px] shadow-sm bg-white rounded-xl p-2 border border-gray-100"
+            />
+          </div>
+
           {/* Upload Area */}
           <div 
             className={`
-              border-2 border-dashed rounded-xl p-10 text-center transition-all cursor-pointer mb-10
-              ${isDragging ? 'border-indigo-500 bg-indigo-50 scale-[1.02]' : 'border-gray-300 hover:border-indigo-400 hover:bg-gray-50 bg-white'}
+              relative overflow-hidden group
+              border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-300 cursor-pointer mb-10
+              ${isDragging 
+                ? 'border-indigo-500 bg-indigo-50/50 scale-[1.01] shadow-lg' 
+                : 'border-gray-300 hover:border-indigo-400 hover:bg-white bg-white shadow-sm hover:shadow-md'
+              }
             `}
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
@@ -186,27 +202,41 @@ const App: React.FC = () => {
               onChange={onFileInput} 
             />
             
-            <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
-               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                </svg>
             </div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">
-              Drag & Drop images here
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              Upload Images
             </h2>
-            <p className="text-gray-500">
-              or click to browse from your computer
+            <p className="text-gray-500 max-w-sm mx-auto">
+              Drag & drop your files here, or click to browse. We'll optimize them for better SEO.
             </p>
+          </div>
+
+          {/* New Middle Ad Unit (Autorelaxed) */}
+          <div className="mb-8">
+             <AdUnit 
+                client={AD_CLIENT_ID} 
+                slot={MIDDLE_AD_SLOT_ID} 
+                format="autorelaxed"
+                label="Sponsored Content"
+                className="w-full"
+             />
           </div>
 
           {/* List of Images */}
           <div className="space-y-6">
             {images.length > 0 && (
-               <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-semibold text-gray-700">Processed Images ({images.length})</h2>
+               <div className="flex justify-between items-center mb-4 px-1">
+                  <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <span className="w-2 h-6 bg-indigo-600 rounded-full"></span>
+                    Queue ({images.length})
+                  </h2>
                   <button 
                     onClick={() => setImages([])} 
-                    className="text-sm text-red-600 hover:text-red-800 font-medium"
+                    className="text-sm text-red-600 hover:text-red-700 font-semibold hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
                   >
                     Clear All
                   </button>
@@ -224,24 +254,29 @@ const App: React.FC = () => {
             ))}
 
             {images.length === 0 && (
-              <div className="text-center py-10 opacity-50">
-                 <p className="text-gray-400">No images uploaded yet.</p>
+              <div className="text-center py-12">
+                 <div className="inline-block p-4 rounded-full bg-gray-100 mb-4 text-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                 </div>
+                 <p className="text-gray-400 font-medium">No images uploaded yet.</p>
               </div>
             )}
           </div>
         </main>
 
-        {/* RIGHT SIDEBAR - Visible on XL screens and up */}
-        <aside className="hidden xl:block w-[160px] 2xl:w-[300px] shrink-0">
-          <div className="sticky top-24 space-y-4">
-            <AdUnit 
+        {/* RIGHT SIDEBAR - Desktop Only (2XL+) */}
+        {/* Widened to 300px to accommodate standard vertical banners */}
+        <aside className="hidden 2xl:block w-[300px] shrink-0 sticky top-28 self-start transition-all duration-300">
+           <AdUnit 
               client={AD_CLIENT_ID} 
               slot={RIGHT_SIDEBAR_SLOT_ID} 
               format="vertical"
-              label="Right Sidebar"
+              label="Advertisement"
+              style={{ minHeight: '600px' }}
+              className="min-h-[600px] shadow-sm bg-white rounded-xl p-2 border border-gray-100"
             />
-            <div className="text-xs text-gray-400 text-center">Advertisement</div>
-          </div>
         </aside>
 
       </div>

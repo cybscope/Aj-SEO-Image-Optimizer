@@ -1,11 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface AdUnitProps {
-  client: string; // Your Publisher ID (e.g., ca-pub-xxxxxxxxxxxxxxxx)
-  slot: string;   // The specific Ad Slot ID for this unit
-  format?: 'auto' | 'fluid' | 'rectangle' | 'vertical';
+  client: string; // Your Publisher ID
+  slot: string;   // The specific Ad Slot ID
+  format?: 'auto' | 'fluid' | 'rectangle' | 'vertical' | 'horizontal' | 'autorelaxed';
   style?: React.CSSProperties;
-  label?: string; // Just for internal labeling (e.g. "Left Sidebar")
+  label?: string; 
+  className?: string;
 }
 
 export const AdUnit: React.FC<AdUnitProps> = ({ 
@@ -13,62 +14,101 @@ export const AdUnit: React.FC<AdUnitProps> = ({
   slot, 
   format = 'auto', 
   style,
-  label 
+  label,
+  className = ''
 }) => {
   const adRef = useRef<HTMLModElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const adRequested = useRef(false);
+  const [shouldLoadAd, setShouldLoadAd] = useState(false);
 
   useEffect(() => {
-    // If we are in the placeholder state, do not attempt to push ads
-    if (!client || client === 'ca-pub-YOUR_ID_HERE' || !slot) {
-      return;
+    // Placeholder check
+    if (client === 'ca-pub-YOUR_ID_HERE' || !client || !slot) return;
+
+    // ResizeObserver watches for visibility changes (e.g. sidebar showing up)
+    const observer = new ResizeObserver((entries) => {
+      // Wrap in requestAnimationFrame to prevent "ResizeObserver loop completed with undelivered notifications"
+      // This error occurs when a resize event triggers a state update that immediately causes another layout change.
+      window.requestAnimationFrame(() => {
+        const entry = entries[0];
+        if (entry) {
+            // Check if element has actual dimensions (is visible)
+            // Using Math.floor to handle sub-pixel values where 0.something might technically be > 0 but effectively hidden
+            const width = Math.floor(entry.contentRect.width);
+            const height = Math.floor(entry.contentRect.height);
+
+            if (width > 0 && height > 0 && !shouldLoadAd) {
+                setShouldLoadAd(true);
+            }
+        }
+      });
+    });
+
+    if (containerRef.current) {
+        observer.observe(containerRef.current);
     }
+    
+    return () => observer.disconnect();
+  }, [client, slot, shouldLoadAd]);
 
-    // Wrap in timeout to handle React Strict Mode double-mount in dev
-    // and ensure the element is truly in the DOM.
-    const timer = setTimeout(() => {
-      // Check if component is still mounted and ref exists
-      if (adRef.current) {
-         try {
-           // Check if this specific slot is already filled to be extra safe
-           if (adRef.current.getAttribute('data-ad-status') === 'filled') {
-             return;
-           }
+  useEffect(() => {
+      // Only request the ad when the container is confirmed visible (shouldLoadAd is true)
+      // This prevents "No slot size for availableWidth=0" error.
+      if (shouldLoadAd && !adRequested.current) {
+          try {
+             // Double check ref existence
+             if (adRef.current) {
+                 // Check if slot is already filled to prevent "All 'ins' elements... already have ads" error
+                 const isFilled = adRef.current.innerHTML.trim() !== '' || 
+                                  adRef.current.getAttribute('data-ad-status') === 'filled';
 
-           // @ts-ignore
-           const adsbygoogle = (window as any).adsbygoogle || [];
-           adsbygoogle.push({});
-         } catch (e) {
-           console.error("AdSense error:", e);
-         }
+                 if (!isFilled) {
+                    // @ts-ignore
+                    const adsbygoogle = (window as any).adsbygoogle || [];
+                    adsbygoogle.push({});
+                    adRequested.current = true;
+                 }
+             }
+          } catch (e) {
+            console.error("AdSense error:", e);
+          }
       }
-    }, 100);
+  }, [shouldLoadAd]);
 
-    // Cleanup: If the component unmounts before the timeout (e.g. React Strict Mode),
-    // cancel the ad push.
-    return () => clearTimeout(timer);
-  }, [client, slot]);
-
-  // If no client ID is provided yet, show a placeholder
-  if (client === 'ca-pub-6989783976135951' || !slot) {
+  // Placeholder UI for development or missing config
+  if (client === 'ca-pub-YOUR_ID_HERE' || !slot || !client) {
      return (
-        <div className="w-full h-full min-h-[600px] bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 p-4 text-center">
-           <span className="font-semibold text-gray-500 mb-2">Ad Space ({label})</span>
-           <span className="text-xs">Paste your AdSense Client & Slot ID in App.tsx to activate.</span>
+        <div className={`w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 p-4 text-center min-h-[150px] ${className}`}>
+           <span className="font-semibold text-gray-500 text-xs uppercase mb-1">Ad Space</span>
+           <span className="text-[10px]">{label || 'Responsive'}</span>
         </div>
      );
   }
 
   return (
-    <div className="ad-container overflow-hidden rounded-lg bg-gray-50 min-h-[250px]">
-        {/* Google AdSense Unit */}
-        <ins ref={adRef}
-            className="adsbygoogle"
-            style={{ display: 'block', ...style }}
-            data-ad-client={client}
-            data-ad-slot={slot}
-            data-ad-format={format}
-            data-full-width-responsive="true"
-        />
+    <div 
+        ref={containerRef}
+        className={`ad-wrapper flex flex-col items-center justify-center my-4 ${className}`}
+    >
+        {label && <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1 text-center w-full border-b border-gray-100 pb-1">Sponsored</div>}
+        {/* Added h-full and flex-1 to ensure it fills the wrapper */}
+        <div className="w-full h-full flex-1 overflow-hidden bg-white/50 rounded-lg min-h-[100px] flex justify-center">
+            {/* 
+              CRITICAL FIX: We conditionally apply the 'adsbygoogle' class.
+              If the component is hidden (e.g., mobile sidebar), 'shouldLoadAd' is false,
+              so the class is missing. This prevents the global adsbygoogle script from 
+              detecting and trying to render into a 0-width container.
+            */}
+            <ins ref={adRef}
+                className={shouldLoadAd ? "adsbygoogle" : ""}
+                style={{ display: 'block', width: '100%', ...style }}
+                data-ad-client={client}
+                data-ad-slot={slot}
+                data-ad-format={format}
+                data-full-width-responsive="true"
+            />
+        </div>
     </div>
   );
 };
