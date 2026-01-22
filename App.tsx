@@ -2,6 +2,14 @@ import React, { useState, useCallback } from 'react';
 import { OptimizedImage } from './types.ts';
 import { compressImage } from './services/compressionService.ts';
 import { ImageEditor } from './components/ImageEditor.tsx';
+import { AdUnit } from './components/AdUnit.tsx';
+
+// --- CONFIGURATION START ---
+// PASTE YOUR ADSENSE ID HERE
+const AD_CLIENT_ID = 'ca-pub-YOUR_ID_HERE'; 
+const LEFT_SIDEBAR_SLOT_ID = ''; // Paste Left Ad Slot ID
+const RIGHT_SIDEBAR_SLOT_ID = ''; // Paste Right Ad Slot ID
+// --- CONFIGURATION END ---
 
 // Simple unique ID generator since we can't depend on external uuid lib in this specific snippet format
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -117,11 +125,11 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen pb-20 flex flex-col">
       
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-20">
+        <div className="max-w-[1600px] mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
              <div className="bg-indigo-600 text-white p-2 rounded-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -139,73 +147,104 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      {/* Main Container with 3-Column Layout */}
+      <div className="max-w-[1600px] mx-auto w-full px-4 py-8 flex gap-6 flex-1 items-start">
         
-        {/* Upload Area */}
-        <div 
-          className={`
-            border-2 border-dashed rounded-xl p-10 text-center transition-all cursor-pointer mb-10
-            ${isDragging ? 'border-indigo-500 bg-indigo-50 scale-[1.02]' : 'border-gray-300 hover:border-indigo-400 hover:bg-gray-50 bg-white'}
-          `}
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-          onDrop={onDrop}
-          onClick={() => document.getElementById('fileInput')?.click()}
-        >
-          <input 
-            type="file" 
-            id="fileInput" 
-            className="hidden" 
-            multiple 
-            accept="image/*"
-            onChange={onFileInput} 
-          />
-          
-          <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
-             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-             </svg>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            Drag & Drop images here
-          </h2>
-          <p className="text-gray-500">
-            or click to browse from your computer
-          </p>
-        </div>
-
-        {/* List of Images */}
-        <div className="space-y-6">
-          {images.length > 0 && (
-             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold text-gray-700">Processed Images ({images.length})</h2>
-                <button 
-                  onClick={() => setImages([])} 
-                  className="text-sm text-red-600 hover:text-red-800 font-medium"
-                >
-                  Clear All
-                </button>
-             </div>
-          )}
-          
-          {images.map(image => (
-            <ImageEditor 
-              key={image.id} 
-              image={image} 
-              onUpdate={updateImage}
-              onQualityChange={handleRecompress}
-              onRemove={removeImage} 
+        {/* LEFT SIDEBAR - Visible on XL screens and up */}
+        <aside className="hidden xl:block w-[160px] 2xl:w-[300px] shrink-0">
+          <div className="sticky top-24 space-y-4">
+            <AdUnit 
+              client={AD_CLIENT_ID} 
+              slot={LEFT_SIDEBAR_SLOT_ID} 
+              format="vertical"
+              label="Left Sidebar"
             />
-          ))}
+            <div className="text-xs text-gray-400 text-center">Advertisement</div>
+          </div>
+        </aside>
 
-          {images.length === 0 && (
-            <div className="text-center py-10 opacity-50">
-               <p className="text-gray-400">No images uploaded yet.</p>
+        {/* CENTER CONTENT */}
+        <main className="flex-1 max-w-4xl mx-auto w-full">
+          
+          {/* Upload Area */}
+          <div 
+            className={`
+              border-2 border-dashed rounded-xl p-10 text-center transition-all cursor-pointer mb-10
+              ${isDragging ? 'border-indigo-500 bg-indigo-50 scale-[1.02]' : 'border-gray-300 hover:border-indigo-400 hover:bg-gray-50 bg-white'}
+            `}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            onClick={() => document.getElementById('fileInput')?.click()}
+          >
+            <input 
+              type="file" 
+              id="fileInput" 
+              className="hidden" 
+              multiple 
+              accept="image/*"
+              onChange={onFileInput} 
+            />
+            
+            <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+               </svg>
             </div>
-          )}
-        </div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              Drag & Drop images here
+            </h2>
+            <p className="text-gray-500">
+              or click to browse from your computer
+            </p>
+          </div>
 
-      </main>
+          {/* List of Images */}
+          <div className="space-y-6">
+            {images.length > 0 && (
+               <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold text-gray-700">Processed Images ({images.length})</h2>
+                  <button 
+                    onClick={() => setImages([])} 
+                    className="text-sm text-red-600 hover:text-red-800 font-medium"
+                  >
+                    Clear All
+                  </button>
+               </div>
+            )}
+            
+            {images.map(image => (
+              <ImageEditor 
+                key={image.id} 
+                image={image} 
+                onUpdate={updateImage}
+                onQualityChange={handleRecompress}
+                onRemove={removeImage} 
+              />
+            ))}
+
+            {images.length === 0 && (
+              <div className="text-center py-10 opacity-50">
+                 <p className="text-gray-400">No images uploaded yet.</p>
+              </div>
+            )}
+          </div>
+        </main>
+
+        {/* RIGHT SIDEBAR - Visible on XL screens and up */}
+        <aside className="hidden xl:block w-[160px] 2xl:w-[300px] shrink-0">
+          <div className="sticky top-24 space-y-4">
+            <AdUnit 
+              client={AD_CLIENT_ID} 
+              slot={RIGHT_SIDEBAR_SLOT_ID} 
+              format="vertical"
+              label="Right Sidebar"
+            />
+            <div className="text-xs text-gray-400 text-center">Advertisement</div>
+          </div>
+        </aside>
+
+      </div>
     </div>
   );
 };
